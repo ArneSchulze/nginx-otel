@@ -32,7 +32,7 @@ class TraceService(trace_service_pb2_grpc.TraceServiceServicer):
 
 
 @pytest.fixture(scope="module")
-def trace_service(request, pytestconfig, logger, cert):
+def trace_service(request, pytestconfig, logger, cert, client_cert):
     server = grpc.server(concurrent.futures.ThreadPoolExecutor())
     trace_service = TraceService()
     trace_service_pb2_grpc.add_TraceServiceServicer_to_server(
@@ -45,7 +45,8 @@ def trace_service(request, pytestconfig, logger, cert):
     listen_addr = f"127.0.0.1:{24317 if trace_service.use_otelcol else 14317}"
     server.add_insecure_port(listen_addr)
     if not trace_service.use_otelcol:
-        creds = grpc.ssl_server_credentials([cert])
+        _, client_ca_cert = client_cert
+        creds = grpc.ssl_server_credentials([cert], client_ca_cert, True)
         server.add_secure_port("127.0.0.1:14318", creds)
         listen_addr += " and 127.0.0.1:14318"
     logger.info(f"Starting trace service at {listen_addr}...")
@@ -56,7 +57,7 @@ def trace_service(request, pytestconfig, logger, cert):
 
 
 @pytest.fixture(scope="module")
-def otelcol(pytestconfig, testdir, logger, trace_service, cert):
+def otelcol(pytestconfig, testdir, logger, trace_service, cert, client_cert):
     if not trace_service.use_otelcol:
         yield
         return
@@ -75,6 +76,7 @@ def otelcol(pytestconfig, testdir, logger, trace_service, cert):
         tls:
           cert_file: {testdir}/localhost.crt
           key_file: {testdir}/localhost.key
+          client_ca_file: {testdir}/client.crt
 
 exporters:
   otlp:

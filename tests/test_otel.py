@@ -320,7 +320,7 @@ def test_exporter_headers(client, trace_service):
     [
         {
             "endpoint": "https://localhost:14318",
-            "exporter_opts": "trusted_certificate localhost.crt;",
+            "exporter_opts": "trusted_certificate localhost.crt; client_certificate client.crt; client_key client.key;",
         }
     ],
     indirect=True,

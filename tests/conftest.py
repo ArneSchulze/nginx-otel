@@ -99,3 +99,11 @@ def cert(testdir):
     (testdir / "localhost.key").write_text(key.decode("utf-8"))
     (testdir / "localhost.crt").write_text(cert.decode("utf-8"))
     yield (key, cert)
+
+
+@pytest.fixture(scope="module")
+def client_cert(testdir):
+    key, cert = self_signed_cert("localhost")
+    (testdir / "client.key").write_text(key.decode("utf-8"))
+    (testdir / "client.crt").write_text(cert.decode("utf-8"))
+    yield (key, cert)
